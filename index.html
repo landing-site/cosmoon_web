@@ -1,0 +1,1856 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cosmoon — AI 피부 진단 & 맞춤 스킨케어</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* ========== RESET & BASE ========== */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; font-size: 16px; }
+    body {
+      font-family: 'Noto Sans KR', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: #1a1a2e;
+      background: #F8F9FA;
+      overflow-x: hidden;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    img { max-width: 100%; display: block; }
+    a { text-decoration: none; color: inherit; }
+
+    /* ========== CSS VARIABLES ========== */
+    :root {
+      --primary: #6B73FF;
+      --secondary: #9C3FDC;
+      --accent: #FF6B9D;
+      --cta: #E91E63;
+      --success: #2ECC71;
+      --warning: #F39C12;
+      --bg: #F8F9FA;
+      --surface: #FFFFFF;
+      --text-primary: #1a1a2e;
+      --text-secondary: rgba(0,0,0,0.54);
+      --text-light: rgba(0,0,0,0.38);
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 24px;
+      --radius-full: 9999px;
+      --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
+      --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
+      --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
+      --shadow-glow: 0 8px 30px rgba(107,115,255,0.25);
+      --max-width: 1200px;
+    }
+
+    /* ========== UTILITY ========== */
+    .container { max-width: var(--max-width); margin: 0 auto; padding: 0 24px; }
+    .text-gradient {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .text-gradient-pink {
+      background: linear-gradient(135deg, var(--cta), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* ========== ANIMATIONS ========== */
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-12px); }
+    }
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 20px rgba(107,115,255,0.2); }
+      50% { box-shadow: 0 0 40px rgba(107,115,255,0.4); }
+    }
+    @keyframes scan-line {
+      0% { top: 10%; }
+      50% { top: 80%; }
+      100% { top: 10%; }
+    }
+    @keyframes fade-up {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes slide-in-left {
+      from { opacity: 0; transform: translateX(-40px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes slide-in-right {
+      from { opacity: 0; transform: translateX(40px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes scale-in {
+      from { opacity: 0; transform: scale(0.9); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    @keyframes count-pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+    @keyframes gradient-shift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    .animate-on-scroll {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .animate-on-scroll.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .animate-on-scroll.delay-1 { transition-delay: 0.1s; }
+    .animate-on-scroll.delay-2 { transition-delay: 0.2s; }
+    .animate-on-scroll.delay-3 { transition-delay: 0.3s; }
+    .animate-on-scroll.delay-4 { transition-delay: 0.4s; }
+    .animate-on-scroll.delay-5 { transition-delay: 0.5s; }
+
+    /* ========== HEADER / NAV ========== */
+    .nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      padding: 16px 0;
+      transition: all 0.3s ease;
+      background: transparent;
+    }
+    .nav.scrolled {
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      box-shadow: 0 1px 12px rgba(0,0,0,0.06);
+      padding: 12px 0;
+    }
+    .nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      max-width: var(--max-width);
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+    .nav-logo img {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+    }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+      list-style: none;
+    }
+    .nav-links a {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      transition: color 0.2s;
+      letter-spacing: 0.2px;
+    }
+    .nav-links a:hover { color: var(--primary); }
+    .nav-cta {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: #fff !important;
+      padding: 10px 24px;
+      border-radius: var(--radius-full);
+      font-weight: 600 !important;
+      font-size: 13px !important;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .nav-cta:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-glow);
+    }
+    .mobile-menu-btn {
+      display: none;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 8px;
+    }
+    .mobile-menu-btn span {
+      display: block;
+      width: 22px;
+      height: 2px;
+      background: var(--text-primary);
+      margin: 5px 0;
+      border-radius: 2px;
+      transition: 0.3s;
+    }
+
+    /* ========== HERO ========== */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+      background: linear-gradient(160deg, #f0f0ff 0%, #fdf0f5 30%, #f8f9fa 70%, #f0f0ff 100%);
+      background-size: 200% 200%;
+      animation: gradient-shift 12s ease infinite;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -200px;
+      right: -200px;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(107,115,255,0.08) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+    .hero::after {
+      content: '';
+      position: absolute;
+      bottom: -150px;
+      left: -150px;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(255,107,157,0.06) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+    .hero-inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+      padding: 120px 0 80px;
+      position: relative;
+      z-index: 1;
+    }
+    .hero-text { max-width: 560px; }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: rgba(107,115,255,0.08);
+      border: 1px solid rgba(107,115,255,0.15);
+      border-radius: var(--radius-full);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--primary);
+      margin-bottom: 24px;
+      animation: fade-up 0.8s ease both;
+    }
+    .hero-badge span { font-size: 16px; }
+    .hero-title {
+      font-size: clamp(36px, 5vw, 56px);
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -1.5px;
+      margin-bottom: 20px;
+      animation: fade-up 0.8s ease 0.15s both;
+    }
+    .hero-subtitle {
+      font-size: clamp(16px, 2vw, 19px);
+      color: var(--text-secondary);
+      line-height: 1.7;
+      margin-bottom: 36px;
+      animation: fade-up 0.8s ease 0.3s both;
+      max-width: 480px;
+    }
+    .hero-actions {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      animation: fade-up 0.8s ease 0.45s both;
+    }
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 16px 36px;
+      background: linear-gradient(135deg, var(--cta) 0%, #c2185b 100%);
+      color: #fff;
+      font-size: 16px;
+      font-weight: 600;
+      border-radius: var(--radius-full);
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 8px 25px rgba(233,30,99,0.3);
+      letter-spacing: 0.3px;
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 35px rgba(233,30,99,0.4);
+    }
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 16px 28px;
+      background: var(--surface);
+      color: var(--text-primary);
+      font-size: 15px;
+      font-weight: 500;
+      border-radius: var(--radius-full);
+      border: 1px solid rgba(0,0,0,0.1);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .btn-secondary:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-sm);
+    }
+    .hero-stats {
+      display: flex;
+      gap: 40px;
+      margin-top: 48px;
+      animation: fade-up 0.8s ease 0.6s both;
+    }
+    .hero-stat-number {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+    .hero-stat-label {
+      font-size: 13px;
+      color: var(--text-light);
+      margin-top: 2px;
+    }
+
+    /* Hero visual - phone mockup */
+    .hero-visual {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      animation: fade-up 1s ease 0.3s both;
+    }
+    .phone-mockup {
+      position: relative;
+      width: 300px;
+      height: 600px;
+      background: #1a1a2e;
+      border-radius: 40px;
+      padding: 12px;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.15), 0 0 0 1px rgba(255,255,255,0.1) inset;
+      animation: float 6s ease-in-out infinite;
+    }
+    .phone-screen {
+      width: 100%;
+      height: 100%;
+      border-radius: 30px;
+      overflow: hidden;
+      position: relative;
+      background: linear-gradient(180deg, #f8f6f4, #fff);
+    }
+    .phone-screen img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .phone-notch {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 120px;
+      height: 28px;
+      background: #1a1a2e;
+      border-radius: 0 0 18px 18px;
+      z-index: 2;
+    }
+    /* Floating cards around phone */
+    .floating-card {
+      position: absolute;
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      padding: 16px 20px;
+      box-shadow: var(--shadow-lg);
+      animation: float 5s ease-in-out infinite;
+      z-index: 2;
+    }
+    .floating-card-score {
+      top: 80px;
+      right: -40px;
+      animation-delay: -1s;
+    }
+    .floating-card-score .score-circle {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--success), #27ae60);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .floating-card-score .score-label {
+      font-size: 12px;
+      color: var(--text-secondary);
+      text-align: center;
+    }
+    .floating-card-product {
+      bottom: 120px;
+      left: -50px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      animation-delay: -3s;
+    }
+    .floating-card-product img {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius-sm);
+      object-fit: cover;
+    }
+    .floating-card-product .product-info .product-name {
+      font-size: 12px;
+      font-weight: 600;
+      max-width: 120px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .floating-card-product .product-info .product-match {
+      font-size: 11px;
+      color: var(--primary);
+      font-weight: 500;
+    }
+
+    /* ========== SECTION COMMON ========== */
+    section { padding: 100px 0; }
+    .section-label {
+      display: inline-block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 12px;
+    }
+    .section-title {
+      font-size: clamp(28px, 4vw, 42px);
+      font-weight: 800;
+      letter-spacing: -1px;
+      line-height: 1.2;
+      margin-bottom: 16px;
+    }
+    .section-desc {
+      font-size: 17px;
+      color: var(--text-secondary);
+      line-height: 1.7;
+      max-width: 560px;
+    }
+    .section-header {
+      text-align: center;
+      margin-bottom: 64px;
+    }
+    .section-header .section-desc {
+      margin: 0 auto;
+    }
+
+    /* ========== FEATURE: HOW IT WORKS (3-step) ========== */
+    .how-it-works {
+      background: var(--surface);
+      position: relative;
+    }
+    .how-it-works::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(107,115,255,0.2), transparent);
+    }
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 40px;
+      position: relative;
+    }
+    .steps-grid::before {
+      content: '';
+      position: absolute;
+      top: 72px;
+      left: 16%;
+      right: 16%;
+      height: 2px;
+      background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
+      border-radius: 2px;
+      z-index: 0;
+    }
+    .step-card {
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+    .step-icon {
+      width: 144px;
+      height: 144px;
+      margin: 0 auto 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 48px;
+      position: relative;
+      background: var(--surface);
+    }
+    .step-icon::before {
+      content: '';
+      position: absolute;
+      inset: -3px;
+      border-radius: 50%;
+      padding: 3px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+    }
+    .step-icon-inner {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, rgba(107,115,255,0.06), rgba(156,63,220,0.06));
+    }
+    .step-number {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(107,115,255,0.3);
+    }
+    .step-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      letter-spacing: -0.3px;
+    }
+    .step-desc {
+      font-size: 15px;
+      color: var(--text-secondary);
+      line-height: 1.65;
+      max-width: 280px;
+      margin: 0 auto;
+    }
+
+    /* ========== FEATURE: AI ANALYSIS ========== */
+    .ai-analysis {
+      background: linear-gradient(180deg, #f8f9fa 0%, #f0f0ff 50%, #f8f9fa 100%);
+      overflow: hidden;
+    }
+    .ai-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: center;
+    }
+    .ai-visual {
+      position: relative;
+    }
+    .ai-face-container {
+      position: relative;
+      width: 380px;
+      height: 460px;
+      margin: 0 auto;
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      box-shadow: var(--shadow-lg);
+    }
+    .ai-face-container img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .scan-line {
+      position: absolute;
+      left: 10%;
+      right: 10%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--primary), var(--secondary), transparent);
+      box-shadow: 0 0 20px rgba(107,115,255,0.5);
+      animation: scan-line 3s ease-in-out infinite;
+      z-index: 1;
+    }
+    .ai-face-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, transparent 50%, rgba(26,26,46,0.6));
+      z-index: 1;
+    }
+    .ai-score-badges {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      right: 20px;
+      display: flex;
+      gap: 8px;
+      z-index: 2;
+    }
+    .ai-score-badge {
+      flex: 1;
+      padding: 10px 8px;
+      border-radius: var(--radius-md);
+      background: rgba(255,255,255,0.15);
+      backdrop-filter: blur(10px);
+      text-align: center;
+      color: #fff;
+    }
+    .ai-score-badge .badge-label {
+      font-size: 11px;
+      opacity: 0.8;
+      margin-bottom: 2px;
+    }
+    .ai-score-badge .badge-score {
+      font-size: 22px;
+      font-weight: 700;
+    }
+    .ai-content .feature-list {
+      list-style: none;
+      margin-top: 36px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .feature-item {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+    .feature-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+    .feature-icon.purple { background: rgba(107,115,255,0.1); }
+    .feature-icon.pink { background: rgba(255,107,157,0.1); }
+    .feature-icon.green { background: rgba(46,204,113,0.1); }
+    .feature-text h4 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .feature-text p {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    /* ========== FEATURE: SKIN CAPTURE 3-STAGE ========== */
+    .capture-section { background: var(--surface); }
+    .capture-stages {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 32px;
+      margin-top: 56px;
+    }
+    .capture-card {
+      background: var(--bg);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      border: 1px solid rgba(0,0,0,0.04);
+    }
+    .capture-card:hover {
+      transform: translateY(-6px);
+      box-shadow: var(--shadow-lg);
+    }
+    .capture-card-visual {
+      height: 200px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .capture-card-visual.wrinkle {
+      background: linear-gradient(135deg, rgba(107,115,255,0.08), rgba(107,115,255,0.03));
+    }
+    .capture-card-visual.blemish {
+      background: linear-gradient(135deg, rgba(255,107,157,0.08), rgba(255,107,157,0.03));
+    }
+    .capture-card-visual.pore {
+      background: linear-gradient(135deg, rgba(156,63,220,0.08), rgba(156,63,220,0.03));
+    }
+    .capture-emoji {
+      font-size: 72px;
+      opacity: 0.9;
+    }
+    .capture-stage-badge {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      padding: 6px 14px;
+      border-radius: var(--radius-full);
+      font-size: 12px;
+      font-weight: 600;
+      color: #fff;
+    }
+    .capture-stage-badge.s1 { background: var(--primary); }
+    .capture-stage-badge.s2 { background: var(--accent); }
+    .capture-stage-badge.s3 { background: var(--secondary); }
+    .capture-card-content {
+      padding: 24px;
+    }
+    .capture-card-content h3 {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .capture-card-content p {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+    .capture-card-content .capture-detail {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(0,0,0,0.06);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--primary);
+      font-weight: 500;
+    }
+
+    /* ========== FEATURE: RECOMMENDATIONS / PRODUCTS ========== */
+    .products-section {
+      background: linear-gradient(180deg, #f8f9fa, #fdf0f5 50%, #f8f9fa);
+    }
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+    }
+    .product-card {
+      background: var(--surface);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      border: 1px solid rgba(0,0,0,0.04);
+    }
+    .product-card:hover {
+      transform: translateY(-6px);
+      box-shadow: var(--shadow-lg);
+    }
+    .product-image {
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: cover;
+      background: #f5f5f5;
+    }
+    .product-body {
+      padding: 20px;
+    }
+    .product-category-tag {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      font-size: 11px;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+    .tag-moisture { background: rgba(33,150,243,0.1); color: #1976D2; }
+    .tag-oily { background: rgba(76,175,80,0.1); color: #388E3C; }
+    .tag-sensitive { background: rgba(156,63,220,0.1); color: #9C3FDC; }
+    .tag-elasticity { background: rgba(255,152,0,0.1); color: #F57C00; }
+    .product-name {
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 1.4;
+      margin-bottom: 8px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .product-rating {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 10px;
+    }
+    .product-rating .stars { color: var(--warning); }
+    .product-price {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .price-sale {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--cta);
+    }
+    .price-original {
+      font-size: 13px;
+      color: var(--text-light);
+      text-decoration: line-through;
+    }
+    .price-discount {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--cta);
+    }
+
+    /* ========== FEATURE: HISTORY / TRACKING ========== */
+    .history-section { background: var(--surface); }
+    .history-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+    }
+    .history-chart {
+      background: var(--bg);
+      border-radius: var(--radius-xl);
+      padding: 40px;
+      position: relative;
+      border: 1px solid rgba(0,0,0,0.04);
+    }
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 32px;
+    }
+    .chart-title {
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .chart-legend {
+      display: flex;
+      gap: 16px;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    .chart-bars {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .chart-bar-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .chart-bar-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      font-weight: 500;
+    }
+    .chart-bar-track {
+      height: 10px;
+      background: rgba(0,0,0,0.04);
+      border-radius: 6px;
+      overflow: hidden;
+      position: relative;
+    }
+    .chart-bar-fill {
+      height: 100%;
+      border-radius: 6px;
+      transition: width 1.5s ease;
+    }
+    .chart-bar-fill.wrinkle {
+      width: 78%;
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+    }
+    .chart-bar-fill.pore {
+      width: 65%;
+      background: linear-gradient(90deg, var(--accent), #ff8fab);
+    }
+    .chart-bar-fill.blemish {
+      width: 82%;
+      background: linear-gradient(90deg, var(--success), #58d68d);
+    }
+    .history-content .improvement-cards {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-top: 32px;
+    }
+    .improvement-card {
+      padding: 20px;
+      border-radius: var(--radius-lg);
+      background: var(--bg);
+      border: 1px solid rgba(0,0,0,0.04);
+    }
+    .improvement-card .imp-label {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+    }
+    .improvement-card .imp-value {
+      font-size: 28px;
+      font-weight: 700;
+    }
+    .improvement-card .imp-change {
+      font-size: 13px;
+      font-weight: 600;
+      margin-top: 4px;
+    }
+    .imp-change.positive { color: var(--success); }
+    .imp-change.info { color: var(--primary); }
+
+    /* ========== FEATURE: SHOPPING FLOW ========== */
+    .shopping-section {
+      background: linear-gradient(180deg, #f8f9fa, #f0f0ff);
+    }
+    .shopping-flow {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+      margin-top: 56px;
+    }
+    .shopping-step {
+      text-align: center;
+      padding: 32px 24px;
+      background: var(--surface);
+      border-radius: var(--radius-xl);
+      border: 1px solid rgba(0,0,0,0.04);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .shopping-step:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-md);
+    }
+    .shopping-icon {
+      width: 72px;
+      height: 72px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      margin: 0 auto 20px;
+    }
+    .shopping-step:nth-child(1) .shopping-icon { background: rgba(107,115,255,0.1); }
+    .shopping-step:nth-child(2) .shopping-icon { background: rgba(255,107,157,0.1); }
+    .shopping-step:nth-child(3) .shopping-icon { background: rgba(156,63,220,0.1); }
+    .shopping-step:nth-child(4) .shopping-icon { background: rgba(46,204,113,0.1); }
+    .shopping-step h4 {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .shopping-step p {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+    .shopping-arrow {
+      display: flex;
+      align-items: center;
+      color: var(--text-light);
+      font-size: 24px;
+    }
+
+    /* ========== MASCOT SECTION ========== */
+    .mascot-section {
+      padding: 80px 0;
+      background: var(--surface);
+      overflow: hidden;
+    }
+    .mascot-inner {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 60px;
+    }
+    .mascot-image {
+      width: 200px;
+      animation: float 4s ease-in-out infinite;
+    }
+    .mascot-text h3 {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+    .mascot-text p {
+      font-size: 16px;
+      color: var(--text-secondary);
+      line-height: 1.7;
+      max-width: 420px;
+    }
+
+    /* ========== FINAL CTA ========== */
+    .final-cta {
+      padding: 120px 0;
+      text-align: center;
+      background: linear-gradient(160deg, #1a1a2e 0%, #2d1b69 50%, #1a1a2e 100%);
+      color: #fff;
+      position: relative;
+      overflow: hidden;
+    }
+    .final-cta::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(ellipse at 30% 50%, rgba(107,115,255,0.15) 0%, transparent 50%),
+                  radial-gradient(ellipse at 70% 50%, rgba(255,107,157,0.1) 0%, transparent 50%);
+    }
+    .final-cta-content {
+      position: relative;
+      z-index: 1;
+    }
+    .final-cta .section-label { color: rgba(255,255,255,0.6); }
+    .final-cta .section-title { color: #fff; }
+    .final-cta .section-desc {
+      color: rgba(255,255,255,0.7);
+      margin: 0 auto 40px;
+    }
+    .final-cta .btn-primary {
+      font-size: 18px;
+      padding: 20px 48px;
+    }
+
+    /* ========== FOOTER ========== */
+    .footer {
+      padding: 60px 0 40px;
+      background: #0f0f1a;
+      color: rgba(255,255,255,0.5);
+    }
+    .footer-inner {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 48px;
+      margin-bottom: 48px;
+    }
+    .footer-brand .footer-logo {
+      font-size: 20px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 16px;
+    }
+    .footer-brand p {
+      font-size: 14px;
+      line-height: 1.7;
+      max-width: 280px;
+    }
+    .footer-col h4 {
+      font-size: 14px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 20px;
+      letter-spacing: 0.5px;
+    }
+    .footer-col ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .footer-col li a {
+      font-size: 14px;
+      color: rgba(255,255,255,0.5);
+      transition: color 0.2s;
+    }
+    .footer-col li a:hover { color: var(--primary); }
+    .footer-bottom {
+      padding-top: 32px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+    }
+    .footer-social {
+      display: flex;
+      gap: 16px;
+    }
+    .footer-social a {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      transition: background 0.2s;
+    }
+    .footer-social a:hover { background: rgba(107,115,255,0.3); }
+
+    /* ========== RESPONSIVE ========== */
+    @media (max-width: 1024px) {
+      .hero-inner { gap: 40px; }
+      .ai-grid { gap: 48px; }
+      .history-grid { gap: 40px; }
+      .products-grid { grid-template-columns: repeat(2, 1fr); }
+      .footer-inner { grid-template-columns: 1fr 1fr; gap: 36px; }
+    }
+    @media (max-width: 768px) {
+      section { padding: 72px 0; }
+      .nav-links { display: none; }
+      .mobile-menu-btn { display: block; }
+      .hero-inner {
+        grid-template-columns: 1fr;
+        text-align: center;
+        padding: 100px 0 60px;
+        gap: 48px;
+      }
+      .hero-text { max-width: 100%; }
+      .hero-subtitle { max-width: 100%; }
+      .hero-actions { justify-content: center; flex-wrap: wrap; }
+      .hero-stats { justify-content: center; }
+      .phone-mockup { width: 240px; height: 480px; }
+      .floating-card-score { right: -10px; top: 40px; }
+      .floating-card-product { left: -20px; bottom: 80px; }
+      .steps-grid {
+        grid-template-columns: 1fr;
+        gap: 48px;
+      }
+      .steps-grid::before { display: none; }
+      .ai-grid {
+        grid-template-columns: 1fr;
+      }
+      .ai-face-container { width: 300px; height: 380px; }
+      .capture-stages {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+      .products-grid { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+      .history-grid { grid-template-columns: 1fr; }
+      .history-chart { padding: 24px; }
+      .shopping-flow {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+      }
+      .mascot-inner {
+        flex-direction: column;
+        text-align: center;
+      }
+      .mascot-text p { max-width: 100%; }
+      .final-cta { padding: 80px 0; }
+      .footer-inner { grid-template-columns: 1fr; gap: 32px; }
+      .footer-bottom { flex-direction: column; gap: 16px; text-align: center; }
+    }
+    @media (max-width: 480px) {
+      .container { padding: 0 16px; }
+      .hero-badge { font-size: 12px; }
+      .btn-primary { padding: 14px 28px; font-size: 15px; }
+      .btn-secondary { padding: 14px 24px; font-size: 14px; }
+      .products-grid { grid-template-columns: 1fr; }
+      .shopping-flow { grid-template-columns: 1fr; }
+      .improvement-cards { grid-template-columns: 1fr !important; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ========== NAVIGATION ========== -->
+<nav class="nav" id="nav">
+  <div class="nav-inner">
+    <a href="#" class="nav-logo">
+      <img src="assets/image/mascot.png" alt="Cosmoon">
+      <span class="text-gradient">Cosmoon</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="#how-it-works">사용 방법</a></li>
+      <li><a href="#ai-analysis">AI 분석</a></li>
+      <li><a href="#products">추천 제품</a></li>
+      <li><a href="#history">피부 히스토리</a></li>
+      <li><a href="#download" class="nav-cta">앱 다운로드</a></li>
+    </ul>
+    <button class="mobile-menu-btn" onclick="document.querySelector('.nav-links').classList.toggle('show')" aria-label="메뉴">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<!-- ========== HERO ========== -->
+<section class="hero" id="hero">
+  <div class="container">
+    <div class="hero-inner">
+      <div class="hero-text">
+        <div class="hero-badge">
+          <span>&#x2728;</span> AI 기반 피부 진단 뷰티 테크
+        </div>
+        <h1 class="hero-title">
+          당신의 피부 이야기를<br>
+          <span class="text-gradient-pink">AI가 읽어드립니다</span>
+        </h1>
+        <p class="hero-subtitle">
+          3단계 정밀 촬영과 AI 딥러닝 분석으로 주름, 모공, 잡티를 진단하고<br>
+          나만의 맞춤 스킨케어 솔루션을 제안합니다.
+        </p>
+        <div class="hero-actions">
+          <a href="#download" class="btn-primary">
+            &#x1F4F1; 무료로 시작하기
+          </a>
+          <a href="#how-it-works" class="btn-secondary">
+            &#x25B6; 사용법 보기
+          </a>
+        </div>
+        <div class="hero-stats">
+          <div>
+            <div class="hero-stat-number text-gradient">3단계</div>
+            <div class="hero-stat-label">정밀 피부 촬영</div>
+          </div>
+          <div>
+            <div class="hero-stat-number text-gradient">AI</div>
+            <div class="hero-stat-label">딥러닝 분석</div>
+          </div>
+          <div>
+            <div class="hero-stat-number text-gradient">12+</div>
+            <div class="hero-stat-label">추천 제품</div>
+          </div>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="phone-mockup">
+          <div class="phone-notch"></div>
+          <div class="phone-screen">
+            <img src="assets/image/1_page.jpg" alt="Cosmoon 앱 화면">
+          </div>
+        </div>
+        <!-- Floating score card -->
+        <div class="floating-card floating-card-score">
+          <div class="score-circle">85</div>
+          <div class="score-label">피부 점수</div>
+        </div>
+        <!-- Floating product card -->
+        <div class="floating-card floating-card-product">
+          <img src="https://cdn.qshop.ai/25738/shop/product/aabcfbc028bc11f0b68e43091bd2b595.png/resize?v=w640" alt="추천 제품">
+          <div class="product-info">
+            <div class="product-name">수딩 & 리페어 로션</div>
+            <div class="product-match">&#x2764; 98% 매칭</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== HOW IT WORKS ========== -->
+<section class="how-it-works" id="how-it-works">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-label animate-on-scroll">How It Works</div>
+      <h2 class="section-title animate-on-scroll delay-1">간단한 3단계로<br>피부 여정을 시작하세요</h2>
+      <p class="section-desc animate-on-scroll delay-2">
+        촬영부터 분석, 맞춤 추천까지 — AI가 당신의 피부를 과학적으로 이해합니다.
+      </p>
+    </div>
+    <div class="steps-grid">
+      <div class="step-card animate-on-scroll delay-1">
+        <div class="step-icon">
+          <div class="step-number">1</div>
+          <div class="step-icon-inner">&#x1F4F8;</div>
+        </div>
+        <h3 class="step-title">3단계 피부 촬영</h3>
+        <p class="step-desc">주름(정면), 잡티(볼 측면), 모공(코 클로즈업) — 세 가지 관점에서 피부 상태를 정밀 촬영합니다.</p>
+      </div>
+      <div class="step-card animate-on-scroll delay-2">
+        <div class="step-icon">
+          <div class="step-number">2</div>
+          <div class="step-icon-inner">&#x1F9E0;</div>
+        </div>
+        <h3 class="step-title">AI 딥러닝 분석</h3>
+        <p class="step-desc">주름, 모공, 잡티 각각을 0~100점으로 정밀 분석하고 종합 피부 등급을 산출합니다.</p>
+      </div>
+      <div class="step-card animate-on-scroll delay-3">
+        <div class="step-icon">
+          <div class="step-number">3</div>
+          <div class="step-icon-inner">&#x1F381;</div>
+        </div>
+        <h3 class="step-title">맞춤 제품 추천</h3>
+        <p class="step-desc">분석 결과와 프로필 기반으로 최적의 스킨케어 제품을 AI가 골라 추천합니다.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== AI ANALYSIS ========== -->
+<section class="ai-analysis" id="ai-analysis">
+  <div class="container">
+    <div class="ai-grid">
+      <div class="ai-visual animate-on-scroll">
+        <div class="ai-face-container">
+          <img src="assets/image/face.png" alt="AI 피부 분석">
+          <div class="scan-line"></div>
+          <div class="ai-face-overlay"></div>
+          <div class="ai-score-badges">
+            <div class="ai-score-badge">
+              <div class="badge-label">주름</div>
+              <div class="badge-score">78</div>
+            </div>
+            <div class="ai-score-badge">
+              <div class="badge-label">모공</div>
+              <div class="badge-score">65</div>
+            </div>
+            <div class="ai-score-badge">
+              <div class="badge-label">잡티</div>
+              <div class="badge-score">82</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="ai-content">
+        <div class="section-label animate-on-scroll">AI Skin Analysis</div>
+        <h2 class="section-title animate-on-scroll delay-1">딥러닝이 읽어내는<br><span class="text-gradient">피부의 진짜 이야기</span></h2>
+        <p class="section-desc animate-on-scroll delay-2">
+          자체 AI 모델이 주름, 모공, 잡티를 각각 분석하여 0~100점 스코어를 산출하고,
+          개인화된 인사이트와 개선 방향을 제시합니다.
+        </p>
+        <ul class="feature-list">
+          <li class="feature-item animate-on-scroll delay-2">
+            <div class="feature-icon purple">&#x1F50D;</div>
+            <div class="feature-text">
+              <h4>정밀 영역별 분석</h4>
+              <p>주름, 모공, 잡티를 개별 AI 모델로 분석하여 각 영역의 정확한 상태를 파악합니다.</p>
+            </div>
+          </li>
+          <li class="feature-item animate-on-scroll delay-3">
+            <div class="feature-icon pink">&#x1F4CA;</div>
+            <div class="feature-text">
+              <h4>종합 스코어 & 등급</h4>
+              <p>0~100 스코어를 기반으로 A부터 F까지 직관적인 피부 등급을 제공합니다.</p>
+            </div>
+          </li>
+          <li class="feature-item animate-on-scroll delay-4">
+            <div class="feature-icon green">&#x1F4F1;</div>
+            <div class="feature-text">
+              <h4>iOS LiDAR 3D 깊이 분석</h4>
+              <p>iPhone의 LiDAR 센서로 3D 깊이 데이터를 함께 캡처하여 더욱 정밀한 진단을 수행합니다.</p>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== 3-STAGE CAPTURE ========== -->
+<section class="capture-section" id="capture">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-label animate-on-scroll">3-Stage Capture</div>
+      <h2 class="section-title animate-on-scroll delay-1">세 번의 촬영으로<br>완전한 피부 지도를 그립니다</h2>
+      <p class="section-desc animate-on-scroll delay-2">
+        각 촬영 단계는 피부의 다른 측면을 포착합니다. 가이드를 따라 쉽고 정확하게 촬영하세요.
+      </p>
+    </div>
+    <div class="capture-stages">
+      <div class="capture-card animate-on-scroll delay-1">
+        <div class="capture-card-visual wrinkle">
+          <span class="capture-emoji">&#x1F9D1;</span>
+          <span class="capture-stage-badge s1">Stage 1</span>
+        </div>
+        <div class="capture-card-content">
+          <h3>주름 분석</h3>
+          <p>정면 얼굴을 촬영하여 이마, 눈가, 입가의 주름 상태를 AI로 정밀 분석합니다.</p>
+          <div class="capture-detail">
+            &#x1F4CB; 정면 촬영 &middot; 자동 가이드 프레임
+          </div>
+        </div>
+      </div>
+      <div class="capture-card animate-on-scroll delay-2">
+        <div class="capture-card-visual blemish">
+          <span class="capture-emoji">&#x1F9D2;</span>
+          <span class="capture-stage-badge s2">Stage 2</span>
+        </div>
+        <div class="capture-card-content">
+          <h3>잡티 분석</h3>
+          <p>볼 측면을 촬영하여 기미, 주근깨, 색소 침착 등 잡티 수와 심각도를 분석합니다.</p>
+          <div class="capture-detail">
+            &#x1F4CB; 볼 측면 촬영 &middot; 잡티 카운트
+          </div>
+        </div>
+      </div>
+      <div class="capture-card animate-on-scroll delay-3">
+        <div class="capture-card-visual pore">
+          <span class="capture-emoji">&#x1F443;</span>
+          <span class="capture-stage-badge s3">Stage 3</span>
+        </div>
+        <div class="capture-card-content">
+          <h3>모공 분석</h3>
+          <p>코 부위를 클로즈업 촬영하여 모공 크기, 밀도, 피지 상태를 정밀하게 측정합니다.</p>
+          <div class="capture-detail">
+            &#x1F4CB; 코 클로즈업 &middot; 모공 밀도 측정
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== RECOMMENDED PRODUCTS ========== -->
+<section class="products-section" id="products">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-label animate-on-scroll">Personalized Picks</div>
+      <h2 class="section-title animate-on-scroll delay-1">AI가 선별한<br><span class="text-gradient-pink">나만의 맞춤 스킨케어</span></h2>
+      <p class="section-desc animate-on-scroll delay-2">
+        피부 분석 결과와 개인 프로필(피부 타입, 고민, 예산)을 종합하여<br>
+        4가지 카테고리에서 최적의 제품을 추천합니다.
+      </p>
+    </div>
+    <div class="products-grid">
+      <!-- Product 1: Moisture -->
+      <div class="product-card animate-on-scroll delay-1">
+        <img class="product-image" src="https://cdn.qshop.ai/25738/shop/product/aabcfbc028bc11f0b68e43091bd2b595.png/resize?v=w640" alt="수딩 & 리페어 로션">
+        <div class="product-body">
+          <span class="product-category-tag tag-moisture">보습 / 수분</span>
+          <div class="product-name">수딩 & 리페어 로션 200g</div>
+          <div class="product-rating">
+            <span class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+            4.9 (2,204)
+          </div>
+          <div class="product-price">
+            <span class="price-discount">10%</span>
+            <span class="price-sale">36,900원</span>
+            <span class="price-original">41,000원</span>
+          </div>
+        </div>
+      </div>
+      <!-- Product 2: Oily -->
+      <div class="product-card animate-on-scroll delay-2">
+        <img class="product-image" src="https://cdn.qshop.ai/25738/shop/product/a1009ce028bc11f08302c9ce6d948962.png/resize?v=w640" alt="퍼펙트 클렌저">
+        <div class="product-body">
+          <span class="product-category-tag tag-oily">모공 / 유분</span>
+          <div class="product-name">퍼펙트 클렌저 480g</div>
+          <div class="product-rating">
+            <span class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+            4.9 (1,468)
+          </div>
+          <div class="product-price">
+            <span class="price-discount">10%</span>
+            <span class="price-sale">38,700원</span>
+            <span class="price-original">43,000원</span>
+          </div>
+        </div>
+      </div>
+      <!-- Product 3: Sensitive -->
+      <div class="product-card animate-on-scroll delay-3">
+        <img class="product-image" src="https://cdn.qshop.ai/25738/shop/product/998e2e0028bc11f087433da311b60112.png/resize?v=w640" alt="시카-바이옴 카밍 에센스 패드">
+        <div class="product-body">
+          <span class="product-category-tag tag-sensitive">민감 / 진정</span>
+          <div class="product-name">시카-바이옴 카밍 에센스 패드 60매</div>
+          <div class="product-rating">
+            <span class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+            4.9 (452)
+          </div>
+          <div class="product-price">
+            <span class="price-discount">10%</span>
+            <span class="price-sale">33,300원</span>
+            <span class="price-original">37,000원</span>
+          </div>
+        </div>
+      </div>
+      <!-- Product 4: Elasticity -->
+      <div class="product-card animate-on-scroll delay-4">
+        <img class="product-image" src="https://cdn.qshop.ai/25738/shop/product/babd0d8028bc11f08302c9ce6d948962.png/resize?v=w640" alt="안티에이징 리뉴얼 세럼">
+        <div class="product-body">
+          <span class="product-category-tag tag-elasticity">미백 / 탄력</span>
+          <div class="product-name">안티에이징 리뉴얼 세럼 50ml</div>
+          <div class="product-rating">
+            <span class="stars">&#9733;&#9733;&#9733;&#9733;&#9734;</span>
+            4.8 (721)
+          </div>
+          <div class="product-price">
+            <span class="price-discount">10%</span>
+            <span class="price-sale">61,200원</span>
+            <span class="price-original">68,000원</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Second row: more products -->
+    <div class="products-grid" style="margin-top: 24px;">
+      <div class="product-card animate-on-scroll delay-1">
+        <img class="product-image" src="https://cdn.qshop.ai/25738/shop/product/255dfb902a4d11f0b68e43091bd2b595.jpg/resize?v=w640" alt="비피다-바이옴 부스팅 에센스">
+        <div class="product-body">
+          <span class="product-category-tag tag-moisture">보습 / 수분</span>
+          <div class="product-name">비피다-바이옴 부스팅 에센스 200ml</div>
+          <div class="product-rating">
+            <span class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+            4.9 (230)
+          </div>
+          <div class="product-price">
+            <span class="price-discount">10%</span>
+            <span class="price-sale">53,100원</span>
+            <span class="price-original">59,000원</span>
+          </div>
+        </div>
+      </div>
+      <div class="product-card animate-on-scroll delay-2">
+        <img class="product-image" src="https://cdn.qshop.ai/25738/shop/product/b4a7f5802a4d11f0b2c4f974f5a95a01.jpg/resize?v=w640" alt="포어 타이트닝 토너">
+        <div class="product-body">
+          <span class="product-category-tag tag-oily">모공 / 유분</span>
+          <div class="product-name">포어 타이트닝 토너 150ml</div>
+          <div class="product-rating">
+            <span class="stars">&#9733;&#9733;&#9733;&#9733;&#9734;</span>
+            4.8 (892)
+          </div>
+          <div class="product-price">
+            <span class="price-discount">10%</span>
+            <span class="price-sale">31,500원</span>
+            <span class="price-original">35,000원</span>
+          </div>
+        </div>
+      </div>
+      <div class="product-card animate-on-scroll delay-3">
+        <img class="product-image" src="https://cdn.qshop.ai/25738/shop/product/9cf55ea02a4d11f09a0909aba2bd6baa.jpg/resize?v=w640" alt="센시티브 카밍 젤">
+        <div class="product-body">
+          <span class="product-category-tag tag-sensitive">민감 / 진정</span>
+          <div class="product-name">센시티브 카밍 젤 150ml</div>
+          <div class="product-rating">
+            <span class="stars">&#9733;&#9733;&#9733;&#9733;&#9734;</span>
+            4.8 (329)
+          </div>
+          <div class="product-price">
+            <span class="price-discount">10%</span>
+            <span class="price-sale">37,800원</span>
+            <span class="price-original">42,000원</span>
+          </div>
+        </div>
+      </div>
+      <div class="product-card animate-on-scroll delay-4">
+        <img class="product-image" src="https://cdn.qshop.ai/25738/shop/product/c9e4e3a029ac11f0b68e43091bd2b595.png/resize?v=w640" alt="브라이트닝 비타민C 크림">
+        <div class="product-body">
+          <span class="product-category-tag tag-elasticity">미백 / 탄력</span>
+          <div class="product-name">브라이트닝 비타민C 크림 100ml</div>
+          <div class="product-rating">
+            <span class="stars">&#9733;&#9733;&#9733;&#9733;&#9734;</span>
+            4.7 (543)
+          </div>
+          <div class="product-price">
+            <span class="price-discount">10%</span>
+            <span class="price-sale">49,500원</span>
+            <span class="price-original">55,000원</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== SKIN HISTORY / TRACKING ========== -->
+<section class="history-section" id="history">
+  <div class="container">
+    <div class="history-grid">
+      <div class="history-chart animate-on-scroll">
+        <div class="chart-header">
+          <div class="chart-title">피부 분석 리포트</div>
+          <div class="chart-legend">
+            <div class="legend-item">
+              <div class="legend-dot" style="background: linear-gradient(135deg, var(--primary), var(--secondary));"></div>
+              주름
+            </div>
+            <div class="legend-item">
+              <div class="legend-dot" style="background: linear-gradient(135deg, var(--accent), #ff8fab);"></div>
+              모공
+            </div>
+            <div class="legend-item">
+              <div class="legend-dot" style="background: linear-gradient(135deg, var(--success), #58d68d);"></div>
+              잡티
+            </div>
+          </div>
+        </div>
+        <div class="chart-bars">
+          <div class="chart-bar-group">
+            <div class="chart-bar-label">
+              <span>주름 (Wrinkle)</span>
+              <span style="font-weight:700; color: var(--primary);">78점</span>
+            </div>
+            <div class="chart-bar-track">
+              <div class="chart-bar-fill wrinkle"></div>
+            </div>
+          </div>
+          <div class="chart-bar-group">
+            <div class="chart-bar-label">
+              <span>모공 (Pore)</span>
+              <span style="font-weight:700; color: var(--accent);">65점</span>
+            </div>
+            <div class="chart-bar-track">
+              <div class="chart-bar-fill pore"></div>
+            </div>
+          </div>
+          <div class="chart-bar-group">
+            <div class="chart-bar-label">
+              <span>잡티 (Blemish)</span>
+              <span style="font-weight:700; color: var(--success);">82점</span>
+            </div>
+            <div class="chart-bar-track">
+              <div class="chart-bar-fill blemish"></div>
+            </div>
+          </div>
+        </div>
+        <!-- Mini timeline -->
+        <div style="display:flex; justify-content:space-between; margin-top:24px; font-size:12px; color:var(--text-light);">
+          <span>1월</span><span>2월</span><span>3월</span><span>4월</span><span>5월</span><span>6월</span>
+        </div>
+      </div>
+      <div class="history-content">
+        <div class="section-label animate-on-scroll">Skin Journey</div>
+        <h2 class="section-title animate-on-scroll delay-1">피부 변화를<br><span class="text-gradient">한눈에 기록</span>하세요</h2>
+        <p class="section-desc animate-on-scroll delay-2">
+          스캔할 때마다 기록이 쌓이고, 시간에 따른 개선 추이를 차트로 확인하세요.
+          이전 점수와 비교하여 나의 스킨케어 루틴이 효과를 발휘하고 있는지 알 수 있습니다.
+        </p>
+        <div class="improvement-cards animate-on-scroll delay-3">
+          <div class="improvement-card">
+            <div class="imp-label">종합 피부 점수</div>
+            <div class="imp-value text-gradient">75<span style="font-size:16px; font-weight:400;">점</span></div>
+            <div class="imp-change positive">&#x25B2; 12점 개선</div>
+          </div>
+          <div class="improvement-card">
+            <div class="imp-label">피부 등급</div>
+            <div class="imp-value" style="color: var(--success);">B+</div>
+            <div class="imp-change info">최근 6개월 기준</div>
+          </div>
+          <div class="improvement-card">
+            <div class="imp-label">분석 횟수</div>
+            <div class="imp-value text-gradient-pink">24<span style="font-size:16px; font-weight:400;">회</span></div>
+            <div class="imp-change info">꾸준한 관리 중</div>
+          </div>
+          <div class="improvement-card">
+            <div class="imp-label">최고 기록</div>
+            <div class="imp-value" style="color: var(--primary);">82<span style="font-size:16px; font-weight:400;">점</span></div>
+            <div class="imp-change positive">&#x25B2; 베스트 스코어</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== SHOPPING FLOW ========== -->
+<section class="shopping-section" id="shopping">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-label animate-on-scroll">Seamless Shopping</div>
+      <h2 class="section-title animate-on-scroll delay-1">분석부터 구매까지<br>원스톱 쇼핑</h2>
+      <p class="section-desc animate-on-scroll delay-2">
+        추천받은 제품을 장바구니에 담고, 카카오페이/카드/토스로 간편 결제하세요.<br>
+        4만원 이상 무료 배송!
+      </p>
+    </div>
+    <div class="shopping-flow">
+      <div class="shopping-step animate-on-scroll delay-1">
+        <div class="shopping-icon">&#x1F50D;</div>
+        <h4>AI 맞춤 추천</h4>
+        <p>피부 분석 결과를 바탕으로<br>최적의 제품을 골라드립니다</p>
+      </div>
+      <div class="shopping-step animate-on-scroll delay-2">
+        <div class="shopping-icon">&#x1F6D2;</div>
+        <h4>장바구니 담기</h4>
+        <p>원하는 제품을 자유롭게 담고<br>수량을 조절하세요</p>
+      </div>
+      <div class="shopping-step animate-on-scroll delay-3">
+        <div class="shopping-icon">&#x1F4B3;</div>
+        <h4>간편 결제</h4>
+        <p>카카오페이, 카드, 토스<br>다양한 결제 수단 지원</p>
+      </div>
+      <div class="shopping-step animate-on-scroll delay-4">
+        <div class="shopping-icon">&#x1F4E6;</div>
+        <h4>빠른 배송</h4>
+        <p>주문 확인부터 배송 추적까지<br>한곳에서 관리합니다</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== MASCOT SECTION ========== -->
+<section class="mascot-section">
+  <div class="container">
+    <div class="mascot-inner animate-on-scroll">
+      <img src="assets/image/mascot.png" alt="Cosmoon 마스코트" class="mascot-image">
+      <div class="mascot-text">
+        <h3>뮤스템과 함께하는<br>나의 <span class="text-gradient">피부 이야기</span></h3>
+        <p>
+          매일 변화하는 나의 피부. Cosmoon의 마스코트와 함께라면 피부 관리가
+          더 이상 어렵지 않아요. AI가 데이터로 증명하는 나만의 뷰티 루틴을 경험해보세요.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== FINAL CTA ========== -->
+<section class="final-cta" id="download">
+  <div class="container">
+    <div class="final-cta-content">
+      <div class="section-label animate-on-scroll">Get Started</div>
+      <h2 class="section-title animate-on-scroll delay-1" style="font-size: clamp(32px, 5vw, 48px);">
+        오늘, 나의 피부 여정을<br>시작하세요
+      </h2>
+      <p class="section-desc animate-on-scroll delay-2">
+        AI 피부 진단부터 맞춤 제품 추천, 쇼핑까지 — 모든 것이 하나의 앱 안에.<br>
+        Google / 카카오 계정으로 간편하게 시작할 수 있습니다.
+      </p>
+      <div class="animate-on-scroll delay-3" style="display:flex; gap:16px; justify-content:center; flex-wrap:wrap;">
+        <a href="#" class="btn-primary" style="font-size:18px; padding:20px 48px;">
+          &#x1F4F1; 무료로 시작하기
+        </a>
+      </div>
+      <div class="animate-on-scroll delay-4" style="margin-top:32px; display:flex; gap:32px; justify-content:center; font-size:14px; color:rgba(255,255,255,0.5);">
+        <span>&#x2714; 무료 피부 분석</span>
+        <span>&#x2714; Google / 카카오 로그인</span>
+        <span>&#x2714; 안전한 개인정보 보호</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== FOOTER ========== -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <div class="footer-logo">&#x1F319; Cosmoon</div>
+        <p>AI 기반 피부 진단과 맞춤형 스킨케어 추천 서비스. 당신의 피부 이야기를 과학적으로 기록하고, 최적의 솔루션을 제안합니다.</p>
+      </div>
+      <div class="footer-col">
+        <h4>서비스</h4>
+        <ul>
+          <li><a href="#ai-analysis">AI 피부 분석</a></li>
+          <li><a href="#products">맞춤 제품 추천</a></li>
+          <li><a href="#history">피부 히스토리</a></li>
+          <li><a href="#shopping">쇼핑</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>고객 지원</h4>
+        <ul>
+          <li><a href="#">FAQ</a></li>
+          <li><a href="#">이용약관</a></li>
+          <li><a href="#">개인정보처리방침</a></li>
+          <li><a href="#">문의하기</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>다운로드</h4>
+        <ul>
+          <li><a href="#">App Store</a></li>
+          <li><a href="#">Google Play</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>&copy; 2025 Cosmoon. All rights reserved.</span>
+      <div class="footer-social">
+        <a href="#" aria-label="Instagram">&#x1F4F7;</a>
+        <a href="#" aria-label="YouTube">&#x25B6;</a>
+        <a href="#" aria-label="Blog">&#x270D;</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- ========== SCRIPTS ========== -->
+<script>
+  // Navbar scroll effect
+  const nav = document.getElementById('nav');
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 50);
+  });
+
+  // Scroll animation observer
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+  document.querySelectorAll('.animate-on-scroll').forEach(el => observer.observe(el));
+
+  // Smooth scroll for nav links
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function(e) {
+      e.preventDefault();
+      const target = document.querySelector(this.getAttribute('href'));
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // Close mobile menu if open
+        document.querySelector('.nav-links')?.classList.remove('show');
+      }
+    });
+  });
+
+  // Mobile nav toggle style
+  const style = document.createElement('style');
+  style.textContent = `
+    @media (max-width: 768px) {
+      .nav-links.show {
+        display: flex !important;
+        flex-direction: column;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: rgba(255,255,255,0.98);
+        backdrop-filter: blur(20px);
+        padding: 20px 24px;
+        gap: 16px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        border-radius: 0 0 16px 16px;
+      }
+      .nav-links.show .nav-cta {
+        text-align: center;
+        display: block;
+      }
+    }
+  `;
+  document.head.appendChild(style);
+</script>
+
+</body>
+</html>
